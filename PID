@@ -1,0 +1,63 @@
+VAR
+
+pv: REAL;
+sv: REAL;
+KP: REAL;
+KI: REAL;
+KD: REAL;
+END_VAR
+
+VAR
+out: REAL;
+m_ek: REAL;
+m_ek1: REAL;
+m_ek2: REAL;
+m_sum: REAL;
+END_VAR
+
+VAR
+    EK: REAL;       // 本次误差
+    EK_1: REAL;     // 上次误差
+    EK_2: REAL;     // 上上次误差
+    EK_SUM: REAL;   // 误差累计
+    timer1: TON;
+END_VAR
+
+timer1(IN:=EN AND NOT timer1.Q, PT:=CYCEL);   // 周期执行
+IF EN AND timer1.Q THEN   // 已启用
+    CASE MODE OF
+        0: // 常规式, out = kp*ek + ki*ek_sum + kd*(ek - ek_1)
+            EK := SV - PV;
+            EK_SUM := EK_SUM + EK;
+            Result := (KP*EK) + (KI*EK_SUM) + (KD*(EK - EK_1));
+            EK_1 := EK;
+            IF ABS(EK) <= 1 THEN   // 误差过零，积分清除
+                EK_SUM := 0.0;
+            END_IF;
+
+        1: // 增量式, out = out + kp*(ek - ek_1) + ki*ek + kd*(ek - 2*(ek_1 - ek_2))
+            EK := SV - PV;
+            Result := Result + (KP*(EK - EK_1) + KI*EK + KD*(EK - 2*(EK_1 - EK_2)));
+            EK_2 := EK_1;
+            EK_1 := EK;
+    END_CASE;
+
+    IF Result > LIMIT_MAX THEN    // 输出限制
+        Result := LIMIT_MAX;
+    ELSIF Result < LIMIT_MIN THEN
+        Result := LIMIT_MIN;
+    END_IF;
+
+    // 内部参数输出
+    m_ek := EK;
+    m_ek1 := EK_1;
+    m_ek2 := EK_2;
+    m_sum := EK_SUM;
+
+ELSIF NOT EN THEN   // 未运行
+    EK := 0.0;
+    EK_1 := 0.0;
+    EK_2 := 0.0;
+    EK_SUM := 0.0;
+    Result := 0.0;
+END_IF;
