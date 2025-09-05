@@ -1,0 +1,41 @@
+
+//此段间先后顺序禁止修改
+NextCondition:=InStep.Condition AND (NOT InStep.OutPls) AND (NOT IsEqual);
+TONR(IN :=NextCondition,PT :=InStep.DelayTime,Q =>DelayOn);
+IF DelayOn AND RunFlag THEN
+	InStep.StepNo:=InStep.NextStepNo;
+	InStep.DebugNo:=InStep.StepNo;
+END_IF;
+IsEqual:=(InStep.StepNo=InStep.NextStepNo);
+PLS1(CLK :=IsEqual ,Q =>InStep.OutPls );
+//此段间先后顺序禁止修改
+
+
+
+---------------------fb——var-----------------------
+
+IN	RunFlag	BOOL	OFF	OFF	不保持	1
+INOUT	InStep	ClassSteps	...	不保持	2
+VAR	IsEqual	BOOL	OFF	OFF	不保持	3
+VAR	NextCondition	BOOL	OFF	OFF	不保持	4
+VAR	DelayOn	BOOL	OFF	OFF	不保持	5
+VAR	PLS1	TRIG.R_TRIG	(CLK:=OFF, Q:=OFF, M:=OFF)	...	不保持	6
+
+---------------------fb——var-----------------------
+
+
+-----------------ClassSteps--------------------
+
+StepNo	INT	步号	1
+NextStepNo	INT	下一步号	2
+DebugNo	INT	调试记录	3
+Condition	BOOL	条件	4
+OutPls	BOOL	上升沿输出	5
+DelayTime	DINT	延时	6
+
+-----------------ClassSteps--------------------
+
+
+
+
+
