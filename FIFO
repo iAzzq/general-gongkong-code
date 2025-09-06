@@ -1,0 +1,67 @@
+
+#R_TRIG_Instance(CLK:=#start);
+
+
+IF #R_TRIG_Instance.Q THEN
+    // Statement section IF
+    #Buffer[#length]:=#data
+    ;
+END_IF;
+
+FOR #i := #length TO 1 BY -1 DO
+    IF #Buffer[#i] <> 0 AND #Buffer[#i - 1] = 0 THEN
+        #Buffer[#i - 1] := #Buffer[#i];
+        #Buffer[#i] := 0;
+    END_IF;
+END_FOR;
+
+#数组已满 := TRUE; (* 先假设数组是满的，如果找到空位则设为 FALSE *)
+
+FOR #i := 0 TO #length DO
+    IF #Buffer[#i] = 0 THEN
+        #数组已满 := FALSE; (* 找到空位，数组未满 *)
+        EXIT;
+    END_IF;
+END_FOR;
+
+#R_TRIG_Instance_1(CLK:=#chubiao);
+IF #R_TRIG_Instance_1.Q THEN
+    // Statement section IF
+    #out := #Buffer[0]; 
+    #Buffer[0] := 0
+    ;
+END_IF;
+
+
+input
+
+	start	Bool	false	非保持	True	True	True	False		
+	length	Int	0	非保持	True	True	True	False		
+	data	Int	0	非保持	True	True	True	False		
+	chubiao	Bool	false	非保持	True	True	True	False		
+
+
+
+
+output
+
+	数组已满	Bool	false	非保持	True	True	True	False		
+	out	Int	0	非保持	True	True	True	False		
+
+inout
+
+	Buffer	Array[0..10] of Int			False	False	False	False		
+
+staic
+
+	R_TRIG_Instance	R_TRIG			True	True	True	True		
+	R_TRIG_Instance_1	R_TRIG			True	True	True	True		
+
+temp
+
+i   int
+
+
+
+
+
