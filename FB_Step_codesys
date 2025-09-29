@@ -1,0 +1,57 @@
+-----------------------------------------------------------------------------------------------------
+
+TYPE ClassSteps :
+STRUCT
+			
+StepNo	:INT;	//步号	
+NextStepNo	:INT;	//下一步号	
+DebugNo	:INT;	//调试记录	
+Condition	:BOOL;	//条件	
+OutPls	: BOOL;	//上升沿输出	
+DelayTime : DINT;	//延时	
+		
+END_STRUCT
+
+END_TYPE
+
+-----------------------------------------------------------------------------------------------------
+
+FUNCTION_BLOCK FB_Step
+VAR_INPUT
+	RunFlag	:BOOL;
+END_VAR
+VAR_IN_OUT
+	
+	InStep	:ClassSteps;
+END_VAR
+
+VAR_OUTPUT
+END_VAR
+VAR
+	
+IsEqual :	BOOL;	//OFF	OFF	不保持	3
+NextCondition	:BOOL;	//OFF	OFF	不保持	4
+DelayOn	:BOOL;	//OFF	OFF	不保持	5
+PLS1: R_TRIG;
+TON_0: TON;
+time_var: TIME;
+END_VAR
+
+
+------------------------------------------------------------------------------------------------------------
+
+
+//此段间先后顺序禁止修改
+NextCondition:=InStep.Condition AND (NOT InStep.OutPls) AND (NOT IsEqual);
+//TONR(IN :=NextCondition,PT :=InStep.DelayTime,Q =>DelayOn);
+time_var := DINT_TO_TIME(InStep.DelayTime);
+TON_0(IN:=NextCondition , PT:=time_var , Q=>DelayOn  );
+IF DelayOn AND RunFlag THEN
+	InStep.StepNo:=InStep.NextStepNo;
+	InStep.DebugNo:=InStep.StepNo;
+END_IF;
+IsEqual:=(InStep.StepNo=InStep.NextStepNo);
+PLS1(CLK :=IsEqual ,Q =>InStep.OutPls );
+//此段间先后顺序禁止修改
+
+
