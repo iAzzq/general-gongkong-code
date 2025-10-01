@@ -1,0 +1,52 @@
+
+
+----------------------------------------------------ClassSteps
+
+	StepNo	Int	0	True	True	True	False	StepNo
+	NextStepNo	Int	0	True	True	True	False	NextStepNo
+	DebugNo	Int	0	True	True	True	False	DebugNo
+	Condition	Bool	false	True	True	True	False	Condition
+	OutPls	Bool	false	True	True	True	False	OutPls
+	DelayTime	DInt	0	True	True	True	False	DelayTime
+
+
+---------------------------------------------------
+FUNCTION_BLOCK "FB_Step"
+VAR_INPUT
+  RunFlag : Bool;
+END_VAR
+VAR_IN_OUT
+  
+  InStep : "ClassSteps";
+END_VAR
+
+VAR_OUTPUT
+END_VAR
+VAR
+  
+  IsEqual : Bool;  //OFF  OFF  不保持  3
+  NextCondition : Bool;  //OFF  OFF  不保持  4
+  DelayOn : Bool;  //OFF  OFF  不保持  5
+  PLS1 : R_TRIG;
+  TON_0 : TON_TIME;
+  time_var : Time;
+END_VAR
+--------------------------------------------------------------------
+//此段间先后顺序禁止修改
+#NextCondition := #InStep.Condition AND (NOT #InStep.OutPls) AND (NOT #IsEqual);
+//TONR(IN :=NextCondition,PT :=InStep.DelayTime,Q =>DelayOn);
+#time_var := DINT_TO_TIME(#InStep.DelayTime);
+#TON_0(IN := #NextCondition,
+       PT := #time_var,
+       Q => #DelayOn);
+IF #DelayOn AND #RunFlag THEN
+    #InStep.StepNo := #InStep.NextStepNo;
+    #InStep.DebugNo := #InStep.StepNo;
+END_IF;
+#IsEqual := (#InStep.StepNo = #InStep.NextStepNo);
+#PLS1(CLK := #IsEqual,
+      Q => #InStep.OutPls);
+//此段间先后顺序禁止修改
+
+
+
